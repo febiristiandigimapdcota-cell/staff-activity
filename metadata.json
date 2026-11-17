@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Activity OS - Dashboard Activity \u0026 Auto Shift Toko",
+  "description": "Dashboard operasional toko retail untuk penjadwalan shift otomatis, penugasan host Open Studio, alokasi Try-On iPad, rekapitulasi progress staf, dan upload bukti kerja.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

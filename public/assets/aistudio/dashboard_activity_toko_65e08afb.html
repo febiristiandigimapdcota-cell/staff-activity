@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Activity & Auto Shift Toko</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS CDN (Untuk Pembacaan File Excel .xlsx & CSV) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+            background-color: #f5f5f7;
+        }
+        /* Custom scrollbar ala macOS */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d1d5db;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9ca3af;
+        }
+
+        @keyframes pulse-slow {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.95); }
+        }
+        .animate-pulse-slow {
+            animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+</head>
+<body class="text-zinc-900 antialiased bg-[#f5f5f7]">
+
+    <div class="flex h-screen overflow-hidden">
+        <!-- SIDEBAR MINIMALIS MONOCHROME (APPLE STYLE) -->
+        <aside class="w-64 bg-zinc-900 text-zinc-300 flex flex-col justify-between shrink-0 shadow-2xl z-20">
+            <div>
+                <!-- Premium Header Logo Sidebar -->
+                <div class="p-5 border-b border-zinc-800 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="relative flex items-center justify-center w-9 h-9 bg-gradient-to-tr from-zinc-800 to-zinc-700 text-white rounded-xl shadow-md border border-zinc-700/60">
+                            <!-- Premium Studio Layers Icon -->
+                            <svg class="w-5 h-5 text-zinc-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                                <polyline points="2 17 12 22 22 17"></polyline>
+                                <polyline points="2 12 12 17 22 12"></polyline>
+                            </svg>
+                            <!-- Live Pulse Dot Indicator -->
+                            <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-zinc-900"></span>
+                            </span>
+                        </div>
+                        <div>
+                            <h1 class="font-bold text-xs tracking-wider text-white uppercase font-mono">ACTIVITY OS</h1>
+                            <p class="text-[10px] text-zinc-400 font-medium">Store Operations</p>
+                        </div>
+                    </div>
+                    <span class="text-[9px] font-semibold tracking-wider text-zinc-400 uppercase bg-zinc-800 px-2 py-0.5 rounded-full border border-zinc-700/50">PRO</span>
+                </div>
+
+                <!-- Navigasi Menu Sidebar -->
+                <nav class="p-3 space-y-1 text-xs font-medium">
+                    <button onclick="navigateSidebar('overview')" id="sidebar-btn-overview" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg bg-zinc-800 text-white transition">
+                        <i class="fa-solid fa-chart-pie w-4 text-center"></i>
+                        <span>Overview Ringkasan</span>
+                    </button>
+                    
+                    <button onclick="navigateSidebar('schedule')" id="sidebar-btn-schedule" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-zinc-800/60 hover:text-white transition text-zinc-400">
+                        <i class="fa-solid fa-calendar-week w-4 text-center"></i>
+                        <span>Weekly Schedule</span>
+                    </button>
+
+                    <button onclick="navigateSidebar('staff-overview')" id="sidebar-btn-staff-overview" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-zinc-800/60 hover:text-white transition text-zinc-400">
+                        <i class="fa-solid fa-id-card-clip w-4 text-center"></i>
+                        <span>Staff Overview</span>
+                    </button>
+
+                    <button onclick="navigateSidebar('proof-upload')" id="sidebar-btn-proof-upload" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-zinc-800/60 hover:text-white transition text-zinc-400">
+                        <i class="fa-solid fa-cloud-arrow-up w-4 text-center"></i>
+                        <span>Upload Bukti / SS</span>
+                    </button>
+
+                    <button onclick="navigateSidebar('links')" id="sidebar-btn-links" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg hover:bg-zinc-800/60 hover:text-white transition text-zinc-400">
+                        <i class="fa-solid fa-link w-4 text-center"></i>
+                        <span>Link</span>
+                    </button>
+
+                    <div class="pt-3 border-t border-zinc-800/80 my-2">
+                        <button onclick="accessAdminArea()" id="sidebar-btn-admin" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-amber-400 hover:bg-zinc-800/80 transition">
+                            <div class="flex items-center space-x-3">
+                                <i class="fa-solid fa-user-shield w-4 text-center"></i>
+                                <span class="font-semibold">Area Admin</span>
+                            </div>
+                            <i class="fa-solid fa-lock text-[10px]" id="admin-lock-status"></i>
+                        </button>
+                    </div>
+                </nav>
+            </div>
+
+            <!-- Bottom Sidebar Footer -->
+            <div class="p-4 border-t border-zinc-800 text-[11px] text-zinc-500">
+                <div class="flex items-center justify-between mb-2">
+                    <span>Status Data:</span>
+                    <span id="data-status-badge" class="px-2 py-0.5 rounded bg-zinc-800 text-zinc-300 font-mono text-[10px]">Default Data</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT CONTAINER AREA -->
+        <div class="flex-1 flex flex-col overflow-y-auto">
+
+            <!-- Top Header Bar Monochrome -->
+            <header class="bg-white border-b border-zinc-200/80 px-8 py-4 sticky top-0 z-10 flex items-center justify-between backdrop-blur-md bg-white/80">
+                <div>
+                    <h2 class="text-lg font-bold tracking-tight text-zinc-900" id="main-section-title">Overview Ringkasan Aktifitas</h2>
+                    <p class="text-xs text-zinc-500">Dashboard Manajemen Operasional & Penjadwalan Toko</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="openFormSubmissionModal()" class="bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-1.5 rounded-lg text-xs font-medium transition shadow-sm flex items-center">
+                        <i class="fa-solid fa-plus mr-1.5 text-[10px]"></i> Submit Record
+                    </button>
+                    <button onclick="openQuickUpdateModal()" class="bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300 px-3.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center">
+                        <i class="fa-solid fa-pen-to-square mr-1.5 text-[10px]"></i> Quick Update
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content Views area -->
+            <main class="p-8 space-y-6">
+
+                <!-- SECTION 1: OVERVIEW RINGKASAN -->
+                <div id="view-overview" class="space-y-6">
+                    <!-- Quick Sync Google Sheet Bar -->
+                    <div class="bg-white border border-zinc-200 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+                        <div class="flex items-center space-x-3">
+                            <div class="p-2.5 bg-zinc-900 text-white rounded-xl">
+                                <i class="fa-solid fa-arrows-rotate text-sm"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-zinc-900 text-xs">Sync Cepat Google Sheets</h3>
+                                <p class="text-[11px] text-zinc-500">Tempelkan link/ID Sheet untuk menarik data shift mingguan</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 w-full md:w-auto">
+                            <input type="text" id="direct-sheet-url" placeholder="Paste Link / ID Google Sheet..." class="w-full md:w-80 text-xs border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none bg-zinc-50">
+                            <button onclick="syncDirectGoogleSheet()" class="bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-2 rounded-xl text-xs font-medium transition shrink-0 shadow-sm">
+                                Sync Data
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Metric Overview Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                        <!-- OPS Card -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-zinc-200/80 p-5 cursor-pointer hover:border-zinc-400 transition" onclick="navigateSidebar('schedule')">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Target OPS (Open Studio)</p>
+                                    <h3 class="text-2xl font-bold text-zinc-900 mt-1" id="ops-count">0 / 0 <span class="text-xs text-zinc-400 font-normal">Sesi</span></h3>
+                                    <p class="text-[11px] text-zinc-500 font-medium mt-1">Target: 3 Sesi/Hari</p>
+                                </div>
+                                <div class="p-2.5 bg-zinc-100 text-zinc-800 rounded-xl">
+                                    <i class="fa-solid fa-video text-base"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex justify-between text-xs text-zinc-500 mb-1.5">
+                                    <span>Pencapaian Mingguan</span>
+                                    <span class="font-bold text-zinc-900" id="ops-percent-text">0%</span>
+                                </div>
+                                <div class="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="bg-zinc-900 h-1.5 rounded-full transition-all duration-500" id="ops-progress-bar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Try On Card -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-zinc-200/80 p-5 cursor-pointer hover:border-zinc-400 transition">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Target Try-On (Store)</p>
+                                    <h3 class="text-2xl font-bold text-zinc-900 mt-1" id="tryon-count">0 / 42 <span class="text-xs text-zinc-400 font-normal">Cust</span></h3>
+                                    <p class="text-[11px] text-zinc-500 font-medium mt-1">Target Store: 42 Cust/Minggu</p>
+                                </div>
+                                <div class="p-2.5 bg-zinc-100 text-zinc-800 rounded-xl">
+                                    <i class="fa-solid fa-shirt text-base"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <div class="flex justify-between text-xs text-zinc-500 mb-1.5">
+                                    <span>Pencapaian Store</span>
+                                    <span class="font-bold text-zinc-900" id="tryon-percent-text">0%</span>
+                                </div>
+                                <div class="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden">
+                                    <div class="bg-zinc-900 h-1.5 rounded-full transition-all duration-500" id="tryon-progress-bar" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Staff On Duty -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-zinc-200/80 p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Staff Active</p>
+                                    <h3 class="text-2xl font-bold text-zinc-900 mt-1" id="active-staff-count">0 Personil</h3>
+                                </div>
+                                <div class="p-2.5 bg-zinc-100 text-zinc-800 rounded-xl">
+                                    <i class="fa-solid fa-users text-base"></i>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-zinc-500 mt-4">Shift: <strong>P</strong>, <strong>MD11</strong>, <strong>MD12</strong>, <strong>MD13</strong>, <strong>S</strong></p>
+                        </div>
+
+                        <!-- Quick Link Status Card -->
+                        <div class="bg-white rounded-2xl shadow-sm border border-zinc-200/80 p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="text-[11px] font-medium uppercase tracking-wider text-zinc-400">Data Schedule</p>
+                                    <h3 class="text-xs font-semibold text-zinc-700 mt-1" id="sheets-status-text">Siap Mengimport File</h3>
+                                </div>
+                                <div class="p-2.5 bg-zinc-100 text-zinc-800 rounded-xl">
+                                    <i class="fa-solid fa-file-excel text-base"></i>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button onclick="accessAdminArea()" class="text-xs font-medium text-zinc-900 underline hover:text-zinc-600 transition">
+                                    Upload Schedule (Admin Area) ➔
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: WEEKLY SCHEDULE -->
+                <div id="view-schedule" class="hidden space-y-6">
+                    <!-- ... existing schedule view ... -->
+                </div>
+
+                <!-- SECTION NEW: STAFF OVERVIEW (PROGRESS OBJECTIVE PER STAFF) -->
+                <div id="view-staff-overview" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200/80">
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                            <div>
+                                <h3 class="font-bold text-zinc-900 text-sm flex items-center">
+                                    <i class="fa-solid fa-id-card-clip mr-2 text-zinc-700"></i> Staff Overview & Progress Objective
+                                </h3>
+                                <p class="text-xs text-zinc-500 mt-0.5">Rekapitulasi total pencapaian Open Studio & Try-On real-time dari hasil upload bukti staff</p>
+                            </div>
+                            <span class="text-xs bg-zinc-100 text-zinc-700 font-medium px-3 py-1.5 rounded-xl border border-zinc-200" id="staff-overview-total-count">Total 0 Staff Active</span>
+                        </div>
+
+                        <!-- Grid Cards Progress Objective Staff -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="staff-overview-grid">
+                            <!-- Dynamic Staff Cards rendered by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: UPLOAD BUKTI / SCREENSHOT STAFF -->
+                <div id="view-proof-upload" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200/80 max-w-2xl mx-auto">
+                        <div class="text-center mb-6">
+                            <div class="w-12 h-12 bg-zinc-100 text-zinc-900 rounded-2xl flex items-center justify-center mx-auto mb-3 text-lg shadow-sm">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                            </div>
+                            <h3 class="font-bold text-zinc-900 text-base">Upload Bukti Screenshot Kerja</h3>
+                            <p class="text-xs text-zinc-500 mt-1">Simpan foto di dashboard ini dan kirim otomatis ke Google Drive Admin.</p>
+                        </div>
+
+                        <div class="space-y-4 text-xs mb-6">
+                            <div>
+                                <label class="block font-medium text-zinc-700 mb-1">Pilih Staf Bertugas</label>
+                                <select id="upload-staff-select" class="w-full border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none bg-zinc-50"></select>
+                            </div>
+                            <div>
+                                <label class="block font-medium text-zinc-700 mb-1">Kategori Aktivitas Bukti / SS</label>
+                                <select id="upload-activity-type" class="w-full border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none bg-zinc-50 font-medium text-zinc-800">
+                                    <option value="OPS">🎬 Open Studio (OPS)</option>
+                                    <option value="WeeklySeed">🌱 Weekly Seed</option>
+                                    <option value="TryOn">👕 Try-On Customer</option>
+                                    <option value="Checklist">📋 Daily Checklist Toko</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-medium text-zinc-700 mb-1">Judul / Catatan Bukti (Opsional)</label>
+                                <input type="text" id="upload-proof-note" placeholder="Contoh: Screenshot Sesi 1 / Laporan Weekly Seed M1" class="w-full border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none bg-zinc-50">
+                            </div>
+                        </div>
+
+                        <!-- Drop File Input Area & Local Dashboard Storage Preview -->
+                        <div class="border-2 border-dashed border-zinc-300 hover:border-zinc-800 rounded-2xl p-6 text-center transition bg-zinc-50/50 cursor-pointer mb-6" onclick="document.getElementById('staff-photo-input').click()">
+                            <input type="file" id="staff-photo-input" accept="image/*" class="hidden" onchange="handleStaffPhotoSelect(event)">
+                            <div id="photo-upload-placeholder">
+                                <i class="fa-solid fa-file-image text-3xl text-zinc-400 mb-2"></i>
+                                <p class="text-xs font-semibold text-zinc-800">Pilih Foto Screenshot / Ambil Gambar</p>
+                                <p class="text-[11px] text-zinc-400 mt-1">Klik untuk memilih file foto dari galeri/perangkat</p>
+                            </div>
+                            <!-- Preview Foto Terpilih -->
+                            <div id="photo-upload-preview" class="hidden flex flex-col items-center">
+                                <img id="preview-img-tag" src="" alt="Preview Bukti" class="max-h-48 rounded-xl object-contain border border-zinc-300 mb-2 shadow-sm">
+                                <span id="preview-filename-text" class="text-xs font-mono text-zinc-600 font-medium"></span>
+                                <span class="text-[10px] text-emerald-600 font-bold mt-1 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Foto Siap Disimpan & Dikirim</span>
+                            </div>
+                        </div>
+
+                        <!-- Action Submit Button -->
+                        <button onclick="saveAndSendPhotoToDrive()" id="btn-submit-photo" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white px-4 py-3 rounded-xl text-xs font-medium transition shadow-md flex items-center justify-center">
+                            <i class="fa-solid fa-paper-plane mr-2 text-xs"></i> Simpan di Dashboard & Send to Drive
+                        </button>
+                    </div>
+
+                    <!-- Local Dashboard Stored Photos Log Gallery -->
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200/80">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-bold text-zinc-900 text-xs flex items-center">
+                                <i class="fa-solid fa-images mr-2 text-zinc-700"></i> Galeri Foto Bukti Ter-Record di Dashboard
+                            </h4>
+                            <span class="text-[11px] text-zinc-500 font-mono" id="stored-photos-count">0 File Foto</span>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="stored-photos-gallery">
+                            <!-- Dynamic Local Stored Photos -->
+                            <div class="col-span-full text-center py-6 text-zinc-400 text-xs">Belum ada foto screenshot yang diunggah</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: AREA ADMIN (PROTECTED WITH ACCESS CODE) -->
+                <div id="view-admin" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200/80">
+                        <div class="flex items-center justify-between pb-4 border-b border-zinc-200/80 mb-6">
+                            <div>
+                                <h3 class="font-bold text-zinc-900 text-base flex items-center text-amber-600">
+                                    <i class="fa-solid fa-user-shield mr-2"></i> Area Admin Operasional
+                                </h3>
+                                <p class="text-xs text-zinc-500 mt-0.5">Pengaturan khusus admin toko (Upload Schedule & Folder Google Drive)</p>
+                            </div>
+                            <button onclick="lockAdminArea()" class="bg-zinc-100 hover:bg-zinc-200 text-zinc-800 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center">
+                                <i class="fa-solid fa-lock mr-1.5 text-[10px]"></i> Kunci Kembali
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Admin Box 1: Excel Upload -->
+                            <div class="bg-zinc-50 p-5 rounded-2xl border border-zinc-200/90 space-y-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2.5 bg-zinc-900 text-white rounded-xl">
+                                        <i class="fa-solid fa-file-excel text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-xs text-zinc-900">Upload Schedule Excel Mingguan</h4>
+                                        <p class="text-[11px] text-zinc-500">Pembaruan jadwal dari file .xlsx / .csv</p>
+                                    </div>
+                                </div>
+                                <div class="border-2 border-dashed border-zinc-300 hover:border-zinc-800 rounded-xl p-5 text-center transition bg-white cursor-pointer" onclick="document.getElementById('excel-file-input').click()">
+                                    <input type="file" id="excel-file-input" accept=".xlsx, .xls, .csv" class="hidden" onchange="handleExcelFileUpload(event)">
+                                    <i class="fa-solid fa-cloud-arrow-up text-2xl text-zinc-400 mb-1"></i>
+                                    <p class="text-xs font-semibold text-zinc-800">Upload File Schedule</p>
+                                </div>
+                                <button onclick="downloadExcelTemplate()" class="w-full bg-white border border-zinc-300 hover:bg-zinc-100 text-zinc-800 px-3.5 py-2 rounded-xl text-xs font-medium transition shadow-sm">
+                                    <i class="fa-solid fa-download mr-1"></i> Download Template Format
+                                </button>
+                            </div>
+
+                            <!-- Admin Box 2: Google Drive Setup -->
+                            <div class="bg-zinc-50 p-5 rounded-2xl border border-zinc-200/90 space-y-4">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2.5 bg-emerald-600 text-white rounded-xl">
+                                        <i class="fa-brands fa-google-drive text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-bold text-xs text-zinc-900">Pengaturan Target Folder Google Drive Admin</h4>
+                                        <p class="text-[11px] text-zinc-500">Koneksi otomatis upload foto bukti ke folder khusus</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-zinc-700 mb-1">URL / Link Target Folder Google Drive</label>
+                                        <input type="text" id="admin-gdrive-url" value="https://drive.google.com/drive/u/0/my-drive" placeholder="https://drive.google.com/drive/folders/ID_FOLDER..." class="w-full text-xs border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none bg-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[11px] font-medium text-zinc-700 mb-1">Google Apps Script Web App Endpoint (Untuk Otomatis Simpan File)</label>
+                                        <input type="text" id="admin-gdrive-script-url" value="" placeholder="https://script.google.com/macros/s/.../exec" class="w-full text-xs border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none bg-white font-mono text-[11px]">
+                                    </div>
+                                </div>
+
+                                <!-- Panduan Singkat Kode Google Apps Script -->
+                                <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 space-y-1">
+                                    <p class="font-bold flex items-center"><i class="fa-solid fa-lightbulb mr-1.5 text-amber-600"></i> Panduan Cara Pasang Auto-Upload (1 Menit):</p>
+                                    <ol class="list-decimal list-inside space-y-0.5 text-[10px] text-amber-800">
+                                        <li>Buka Google Drive Admin ➔ Buat / Buka Folder Target.</li>
+                                        <li>Klik <strong>Extensions ➔ Apps Script</strong> di Google Sheets/Drive Anda.</li>
+                                        <li>Salin & Tempel kode script di bawah ini ke Apps Script, lalu klik <strong>Deploy ➔ New Deployment ➔ Web App (Anyone)</strong>.</li>
+                                        <li>Tempelkan URL Web App yang dihasilkan ke kolom input di atas!</li>
+                                    </ol>
+                                    <button onclick="copyAppsScriptCode()" class="mt-2 w-full bg-amber-200/80 hover:bg-amber-300 text-amber-900 font-semibold py-1.5 px-3 rounded-lg text-[10px] transition flex items-center justify-center">
+                                        <i class="fa-solid fa-copy mr-1.5"></i> Copy Kode Google Apps Script
+                                    </button>
+                                </div>
+
+                                <button onclick="saveDriveUrl()" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white px-3.5 py-2 rounded-xl text-xs font-medium transition shadow-sm">
+                                    Simpan Konfigurasi Drive Admin
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: LINK KERJA -->
+                <div id="view-links" class="hidden space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-zinc-200/80">
+                        <h3 class="font-bold text-zinc-900 text-sm mb-4 flex items-center">
+                            <i class="fa-solid fa-link mr-2 text-zinc-700"></i> Link Akses Cepat Form Operasional
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <a href="https://forms.gle/KxWcLXytpqkJJNDc9" target="_blank" onclick="trackFormClick('OPS')" class="p-4 rounded-xl border border-zinc-200 hover:border-zinc-800 transition flex items-center justify-between bg-zinc-50/50 group">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2.5 bg-zinc-900 text-white rounded-lg">
+                                        <i class="fa-solid fa-video text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-xs text-zinc-900 group-hover:underline">Link Open Studio</h4>
+                                        <p class="text-[11px] text-zinc-500">Google Form Penugasan OPS</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs text-zinc-400"></i>
+                            </a>
+
+                            <a href="https://docs.google.com/forms/d/e/1FAIpQLSckv5jybuadbmja0zvLqJXvWLPufpTUOCHrkLrU-3Ho9nZDJA/viewform" target="_blank" onclick="trackFormClick('TryOn')" class="p-4 rounded-xl border border-zinc-200 hover:border-zinc-800 transition flex items-center justify-between bg-zinc-50/50 group">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2.5 bg-zinc-900 text-white rounded-lg">
+                                        <i class="fa-solid fa-shirt text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-xs text-zinc-900 group-hover:underline">Link Try On Aksara</h4>
+                                        <p class="text-[11px] text-zinc-500">Form Pendataan Try-On Aksara</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs text-zinc-400"></i>
+                            </a>
+
+                            <a href="https://docs.google.com/forms/d/e/1FAIpQLSdDj3fPWA5_tZ7xBcjEhb8hMn0DAQ5Ok_joASUjwStYUjC5Ow/viewform" target="_blank" onclick="trackFormClick('TryOn')" class="p-4 rounded-xl border border-zinc-200 hover:border-zinc-800 transition flex items-center justify-between bg-zinc-50/50 group">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2.5 bg-zinc-900 text-white rounded-lg">
+                                        <i class="fa-solid fa-headphones text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-xs text-zinc-900 group-hover:underline">Link Airpods Try On 👉</h4>
+                                        <p class="text-[11px] text-zinc-500">Form Pendataan Try-On AirPods</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs text-zinc-400"></i>
+                            </a>
+
+                            <a href="https://docs.google.com/forms/d/e/1FAIpQLSfa7qAEatFlNJbZQfc733a_h4iqeaIKWlAGGWmE2WwVRwT3jA/viewform?usp=publish-editor" target="_blank" class="p-4 rounded-xl border border-zinc-200 hover:border-zinc-800 transition flex items-center justify-between bg-zinc-50/50 group">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2.5 bg-zinc-900 text-white rounded-lg">
+                                        <i class="fa-solid fa-clipboard-check text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-xs text-zinc-900 group-hover:underline">Dailyceklis M131 👉</h4>
+                                        <p class="text-[11px] text-zinc-500">Checklist Operasional Harian Toko</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs text-zinc-400"></i>
+                            </a>
+
+                            <a href="https://ztevejob.github.io/Sales-Coach-Submit/" target="_blank" class="p-4 rounded-xl border border-zinc-200 hover:border-zinc-800 transition flex items-center justify-between bg-zinc-50/50 group">
+                                <div class="flex items-center space-x-3">
+                                    <div class="p-2.5 bg-zinc-900 text-white rounded-lg">
+                                        <i class="fa-solid fa-user-graduate text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-xs text-zinc-900 group-hover:underline">Monthly Sales Coach</h4>
+                                        <p class="text-[11px] text-zinc-500">Form Submit Coaching Sales Bulanan</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs text-zinc-400"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL ACCESS CODE ADMIN -->
+    <div id="admin-pin-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-zinc-200 max-w-xs w-full p-6 text-center">
+            <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 class="font-bold text-zinc-900 text-sm mb-1">Masukan PIN Admin</h3>
+            <p class="text-xs text-zinc-500 mb-4">Masukkan kode akses untuk membuka Area Admin</p>
+            <input type="password" id="admin-pin-input" placeholder="PIN Default: 1234" class="w-full text-center text-sm border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none mb-4">
+            <div class="flex space-x-2">
+                <button onclick="toggleModal('admin-pin-modal')" class="w-1/2 py-2 border border-zinc-300 text-zinc-700 rounded-xl text-xs font-medium hover:bg-zinc-50 transition">Batal</button>
+                <button onclick="verifyAdminPin()" class="w-1/2 py-2 bg-zinc-900 text-white rounded-xl text-xs font-medium hover:bg-zinc-800 transition">Verifikasi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL QUICK UPDATE TARGET & ACH -->
+    <div id="quick-update-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-zinc-200 max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-zinc-900 text-sm">Update Pencapaian Staff Manual</h3>
+                <button onclick="toggleModal('quick-update-modal')" class="text-zinc-400 hover:text-zinc-800 text-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-medium text-zinc-700 mb-1">Pilih Staff</label>
+                    <select id="modal-staff-select" class="w-full border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none"></select>
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-700 mb-1">Pencapaian Sesi OPS Selesai</label>
+                    <input type="number" id="modal-ops-ach" min="0" class="w-full border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-700 mb-1">Pencapaian Customer Try-On</label>
+                    <input type="number" id="modal-tryon-ach" min="0" class="w-full border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-2">
+                <button onclick="toggleModal('quick-update-modal')" class="px-4 py-2 border border-zinc-300 text-zinc-700 rounded-xl text-xs font-medium hover:bg-zinc-50 transition">Batal</button>
+                <button onclick="saveManualUpdate()" class="px-4 py-2 bg-zinc-900 text-white rounded-xl text-xs font-medium hover:bg-zinc-800 transition">Simpan Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL SUBMIT RECORD SIMULATION -->
+    <div id="submit-record-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl border border-zinc-200 max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold text-zinc-900 text-sm">Submit Form Activity Record</h3>
+                <button onclick="toggleModal('submit-record-modal')" class="text-zinc-400 hover:text-zinc-800 text-sm">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-medium text-zinc-700 mb-1">Jenis Aktivitas</label>
+                    <select id="record-type-select" class="w-full border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none">
+                        <option value="OPS">Open Studio (OPS)</option>
+                        <option value="TryOn">Try-On Customer</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-700 mb-1">Staff Bertugas</label>
+                    <select id="record-staff-select" class="w-full border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none"></select>
+                </div>
+                <div>
+                    <label class="block font-medium text-zinc-700 mb-1">Jumlah / Count</label>
+                    <input type="number" id="record-count-input" value="1" min="1" class="w-full border border-zinc-300 rounded-xl p-2.5 focus:ring-1 focus:ring-zinc-900 focus:outline-none">
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-2">
+                <button onclick="toggleModal('submit-record-modal')" class="px-4 py-2 border border-zinc-300 text-zinc-700 rounded-xl text-xs font-medium hover:bg-zinc-50 transition">Batal</button>
+                <button onclick="handleFormSubmissionRecord()" class="px-4 py-2 bg-zinc-900 text-white rounded-xl text-xs font-medium hover:bg-zinc-800 transition">Record Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC LENGKAP DASBOR -->
+    <script>
+        // Data Global Staf & Target Awal
+        let staffData = [
+            { id: 1, name: "Adit Prasetyo", shifts: ["P","P","MD11","P","S","OFF","OFF"], targetOps: 0, achOps: 0, achTryOn: 0 },
+            { id: 2, name: "Rina Marlina", shifts: ["S","S","P","MD12","P","OFF","OFF"], targetOps: 0, achOps: 0, achTryOn: 0 },
+            { id: 3, name: "Siti Kurnia", shifts: ["MD13","P","S","S","OFF","P","MD11"], targetOps: 0, achOps: 0, achTryOn: 0 },
+            { id: 4, name: "Budi Santoso", shifts: ["OFF","MD11","P","S","P","S","P"], targetOps: 0, achOps: 0, achTryOn: 0 },
+            { id: 5, name: "Lia Lestari", shifts: ["P","OFF","S","P","MD13","P","S"], targetOps: 0, achOps: 0, achTryOn: 0 }
+        ];
+
+        // Storage Lokal Dashboard Foto Bukti
+        let dashboardPhotoRecords = [];
+        let currentSelectedPhotoBase64 = null;
+        let currentSelectedFileName = "";
+
+        const STORE_TRYON_TARGET = 42; // Target Try-on store 1 minggu
+        const daysMap = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
+        let adminUnlocked = false;
+        let adminDriveUrl = "https://drive.google.com/drive/u/0/my-drive";
+        let adminDriveScriptUrl = "";
+
+        // Inisialisasi Saat Halaman Di-load
+        window.onload = function() {
+            calculateOpsTargetsFromShift();
+            renderAllViews();
+            highlightCurrentDayInSchedule();
+            renderStoredPhotosGallery();
+        };
+
+        // Switch Navigasi Sidebar
+        function navigateSidebar(viewName) {
+            const views = ['overview', 'schedule', 'staff-overview', 'proof-upload', 'admin', 'links'];
+            const titleMap = {
+                'overview': 'Overview Ringkasan Aktifitas',
+                'schedule': 'Weekly Schedule (Shift, OPS & Try-On iPad)',
+                'staff-overview': 'Staff Overview & Progress Objective',
+                'proof-upload': 'Upload Bukti Screenshot Staff',
+                'admin': 'Area Admin Operasional',
+                'links': 'Link Kerja Operasional'
+            };
+
+            views.forEach(v => {
+                const viewEl = document.getElementById(`view-${v}`);
+                const btnEl = document.getElementById(`sidebar-btn-${v}`);
+                if (viewEl) viewEl.classList.add('hidden');
+                if (btnEl) {
+                    btnEl.classList.remove('bg-zinc-800', 'text-white');
+                    btnEl.classList.add('hover:bg-zinc-800/60', 'text-zinc-400');
+                }
+            });
+
+            const activeView = document.getElementById(`view-${viewName}`);
+            const activeBtn = document.getElementById(`sidebar-btn-${viewName}`);
+            const titleEl = document.getElementById('main-section-title');
+
+            if (activeView) activeView.classList.remove('hidden');
+            if (activeBtn) {
+                activeBtn.classList.add('bg-zinc-800', 'text-white');
+                activeBtn.classList.remove('hover:bg-zinc-800/60', 'text-zinc-400');
+            }
+            if (titleEl && titleMap[viewName]) titleEl.innerText = titleMap[viewName];
+        }
+
+        // Akses Admin dengan PIN Protection
+        function accessAdminArea() {
+            if (adminUnlocked) {
+                navigateSidebar('admin');
+            } else {
+                toggleModal('admin-pin-modal');
+            }
+        }
+
+        function verifyAdminPin() {
+            const pinInput = document.getElementById('admin-pin-input');
+            const pinVal = pinInput ? pinInput.value : '';
+            if (pinVal === "1234" || pinVal === "admin") {
+                adminUnlocked = true;
+                const lockStatus = document.getElementById('admin-lock-status');
+                if (lockStatus) lockStatus.className = "fa-solid fa-lock-open text-[10px] text-emerald-400";
+                toggleModal('admin-pin-modal');
+                navigateSidebar('admin');
+            } else {
+                alert("Kode PIN Admin Salah! (Default PIN: 1234)");
+            }
+        }
+
+        function lockAdminArea() {
+            adminUnlocked = false;
+            const lockStatus = document.getElementById('admin-lock-status');
+            if (lockStatus) lockStatus.className = "fa-solid fa-lock text-[10px]";
+            navigateSidebar('overview');
+        }
+
+        function saveDriveUrl() {
+            const inputUrl = document.getElementById('admin-gdrive-url').value.trim();
+            const inputScriptUrl = document.getElementById('admin-gdrive-script-url').value.trim();
+            
+            if (inputUrl) {
+                adminDriveUrl = inputUrl;
+            }
+            if (inputScriptUrl) {
+                adminDriveScriptUrl = inputScriptUrl;
+            }
+            alert("Konfigurasi Target Folder Google Drive Admin Berhasil Disimpan!");
+        }
+
+        // Highlight Hari Ini di Tabel Schedule
+        function highlightCurrentDayInSchedule() {
+            const now = new Date();
+            let dayIndex = now.getDay() - 1; 
+            if (dayIndex === -1) dayIndex = 6; // Minggu = 6
+
+            for (let i = 0; i < 7; i++) {
+                const th = document.getElementById(`th-day-${i}`);
+                if (th) {
+                    if (i === dayIndex) {
+                        th.classList.add('bg-zinc-900', 'text-white', 'font-bold');
+                    } else {
+                        th.classList.remove('bg-zinc-900', 'text-white', 'font-bold');
+                    }
+                }
+            }
+
+            const currentDayLabel = document.getElementById('current-day-label');
+            if (currentDayLabel) {
+                currentDayLabel.innerText = daysMap[dayIndex];
+            }
+        }
+
+        // Kalkulasi Target OPS Seminggu berdasarkan alokasi shift 1 staff/sesi
+        function calculateOpsTargetsFromShift() {
+            staffData.forEach(s => s.targetOps = 0);
+            
+            for (let dayIdx = 0; dayIdx < 7; dayIdx++) {
+                const assignedStaffIds = new Set();
+
+                // Sesi 1 (13:00) ➔ Prioritas Staff Shift P atau MD11
+                let s1Staff = staffData.find(s => (s.shifts[dayIdx] === 'P' || s.shifts[dayIdx] === 'MD11'));
+                if (s1Staff) {
+                    s1Staff.targetOps += 1;
+                    assignedStaffIds.add(s1Staff.id);
+                }
+
+                // Sesi 3 (18:00) ➔ Prioritas Staff Shift S
+                let s3Staff = staffData.find(s => s.shifts[dayIdx] === 'S');
+                if (s3Staff) {
+                    s3Staff.targetOps += 1;
+                    assignedStaffIds.add(s3Staff.id);
+                }
+
+                // Sesi 2 (15:00) ➔ Prioritas Shift MD12 / MD13, Alternatif staff lain yang BELUM dapat sesi
+                let s2Staff = staffData.find(s => (s.shifts[dayIdx] === 'MD12' || s.shifts[dayIdx] === 'MD13') && !assignedStaffIds.has(s.id));
+                if (s2Staff) {
+                    s2Staff.targetOps += 1;
+                    assignedStaffIds.add(s2Staff.id);
+                } else {
+                    let backupStaff = staffData.find(s => (s.shifts[dayIdx] === 'P' || s.shifts[dayIdx] === 'MD11' || s.shifts[dayIdx] === 'S') && !assignedStaffIds.has(s.id));
+                    if (backupStaff) {
+                        backupStaff.targetOps += 1;
+                        assignedStaffIds.add(backupStaff.id);
+                    }
+                }
+            }
+        }
+
+        // Populate Staff Selection Dropdowns
+        function populateModalStaffSelects() {
+            const modalSelect = document.getElementById('modal-staff-select');
+            const recordSelect = document.getElementById('record-staff-select');
+            const uploadSelect = document.getElementById('upload-staff-select');
+
+            const optionsHtml = staffData.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+            if (modalSelect) modalSelect.innerHTML = optionsHtml;
+            if (recordSelect) recordSelect.innerHTML = optionsHtml;
+            if (uploadSelect) uploadSelect.innerHTML = optionsHtml;
+        }
+
+        // Render Seluruh Tampilan Data
+        function renderAllViews() {
+            renderOverviewCards();
+            renderWeeklyShifts();
+            renderDailyOpsSessions();
+            renderDailyTryOnSessions();
+            renderStaffOverviewGrid();
+            populateModalStaffSelects();
+        }
+
+        // Render Staff Overview Progress Objective Grid
+        function renderStaffOverviewGrid() {
+            const grid = document.getElementById('staff-overview-grid');
+            const countEl = document.getElementById('staff-overview-total-count');
+            if (!grid) return;
+
+            if (countEl) countEl.innerText = `Total ${staffData.length} Staff Active`;
+            grid.innerHTML = '';
+
+            staffData.forEach(staff => {
+                const totalUploads = dashboardPhotoRecords.filter(r => r.staffName === staff.name).length;
+                const opsTarget = staff.targetOps || 0;
+                const opsAch = staff.achOps || 0;
+                const tryOnAch = staff.achTryOn || 0;
+
+                const opsPercent = opsTarget > 0 ? Math.min(100, Math.round((opsAch / opsTarget) * 100)) : 0;
+
+                let card = document.createElement('div');
+                card.className = "bg-zinc-50 border border-zinc-200/90 rounded-2xl p-5 shadow-sm space-y-4 hover:border-zinc-400 transition";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between pb-3 border-b border-zinc-200/60">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 bg-zinc-900 text-white font-bold rounded-xl flex items-center justify-center text-xs">
+                                ${staff.name.split(' ').map(n=>n[0]).join('')}
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-sm text-zinc-900">${staff.name}</h4>
+                                <span class="text-[10px] text-zinc-500">ID Staff: #00${staff.id}</span>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 bg-white border border-zinc-200 rounded-lg text-[10px] font-mono font-semibold text-zinc-700">
+                            <i class="fa-solid fa-cloud-arrow-up text-emerald-500 mr-1"></i>${totalUploads} Upload SS
+                        </span>
+                    </div>
+
+                    <!-- Metric 1: Open Studio (OPS) -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs mb-1">
+                            <span class="font-medium text-zinc-700 flex items-center"><i class="fa-solid fa-video mr-1.5 text-zinc-500"></i> Open Studio (OPS)</span>
+                            <span class="font-bold text-zinc-900">${opsAch} / ${opsTarget} Sesi</span>
+                        </div>
+                        <div class="w-full bg-zinc-200/60 rounded-full h-2 overflow-hidden">
+                            <div class="bg-zinc-900 h-2 rounded-full transition-all duration-500" style="width: ${opsPercent}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Metric 2: Try-On Customer -->
+                    <div class="bg-white p-3 rounded-xl border border-zinc-200/80 flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-xs text-zinc-700 font-medium">
+                            <i class="fa-solid fa-shirt text-zinc-500"></i>
+                            <span>Try-On Customer Success</span>
+                        </div>
+                        <span class="text-sm font-bold text-zinc-900 bg-zinc-100 px-2.5 py-0.5 rounded-md font-mono">${tryOnAch} Cust</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Render Ringkasan Card Metric (Safe Null Checked)
+        function renderOverviewCards() {
+            const totalOpsTarget = staffData.reduce((acc, s) => acc + s.targetOps, 0);
+            const totalOpsAch = staffData.reduce((acc, s) => acc + s.achOps, 0);
+            const totalTryOnAch = staffData.reduce((acc, s) => acc + s.achTryOn, 0);
+            const activeStaffCount = staffData.length;
+
+            const opsPercent = totalOpsTarget > 0 ? Math.min(100, Math.round((totalOpsAch / totalOpsTarget) * 100)) : 0;
+            const tryOnPercent = Math.min(100, Math.round((totalTryOnAch / STORE_TRYON_TARGET) * 100));
+
+            const opsCountEl = document.getElementById('ops-count');
+            const opsPercentEl = document.getElementById('ops-percent-text');
+            const opsBarEl = document.getElementById('ops-progress-bar');
+            const tryonCountEl = document.getElementById('tryon-count');
+            const tryonPercentEl = document.getElementById('tryon-percent-text');
+            const tryonBarEl = document.getElementById('tryon-progress-bar');
+            const activeStaffEl = document.getElementById('active-staff-count');
+
+            if (opsCountEl) opsCountEl.innerHTML = `${totalOpsAch} / ${totalOpsTarget} <span class="text-xs text-zinc-400 font-normal">Sesi</span>`;
+            if (opsPercentEl) opsPercentEl.innerText = `${opsPercent}%`;
+            if (opsBarEl) opsBarEl.style.width = `${opsPercent}%`;
+
+            if (tryonCountEl) tryonCountEl.innerHTML = `${totalTryOnAch} / ${STORE_TRYON_TARGET} <span class="text-xs text-zinc-400 font-normal">Cust</span>`;
+            if (tryonPercentEl) tryonPercentEl.innerText = `${tryOnPercent}%`;
+            if (tryonBarEl) tryonBarEl.style.width = `${tryOnPercent}%`;
+
+            if (activeStaffEl) activeStaffEl.innerText = `${activeStaffCount} Personil`;
+        }
+
+        // Render Tabel Shift Mingguan
+        function renderWeeklyShifts() {
+            const tbody = document.getElementById('weekly-shift-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            staffData.forEach(staff => {
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-zinc-50/80 transition";
+                
+                let shiftsHtml = staff.shifts.map((sh) => {
+                    let badgeClass = "bg-zinc-100 text-zinc-600";
+                    if (sh === 'P') badgeClass = "bg-blue-50 text-blue-700 font-bold border border-blue-200";
+                    if (sh === 'MD11') badgeClass = "bg-sky-50 text-sky-700 font-bold border border-sky-200";
+                    if (sh === 'MD12') badgeClass = "bg-amber-50 text-amber-700 font-bold border border-amber-200";
+                    if (sh === 'MD13') badgeClass = "bg-orange-50 text-orange-700 font-bold border border-orange-200";
+                    if (sh === 'S') badgeClass = "bg-purple-50 text-purple-700 font-bold border border-purple-200";
+                    if (sh === 'OFF') badgeClass = "bg-zinc-100 text-zinc-400 font-normal";
+                    
+                    return `<td class="p-3 text-center"><span class="px-2 py-0.5 rounded-md text-[10px] ${badgeClass}">${sh}</span></td>`;
+                }).join('');
+
+                tr.innerHTML = `
+                    <td class="p-3.5 font-medium text-zinc-900 flex items-center space-x-2">
+                        <span>${staff.name}</span>
+                    </td>
+                    ${shiftsHtml}
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Render Alokasi OPS Sesi Hari Ini (1 Staff Per Sesi, Single Session Guard)
+        function renderDailyOpsSessions() {
+            const grid = document.getElementById('daily-ops-sessions-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const now = new Date();
+            let dayIndex = now.getDay() - 1;
+            if (dayIndex === -1) dayIndex = 6;
+
+            const assignedStaffIds = new Set();
+
+            // Sesi 1 (13:00) ➔ P atau MD11
+            let host1 = staffData.find(s => s.shifts[dayIndex] === 'P' || s.shifts[dayIndex] === 'MD11');
+            if (host1) assignedStaffIds.add(host1.id);
+
+            // Sesi 3 (18:00) ➔ S
+            let host3 = staffData.find(s => s.shifts[dayIndex] === 'S');
+            if (host3) assignedStaffIds.add(host3.id);
+
+            // Sesi 2 (15:00) ➔ MD12 / MD13, atau backup yang belum bertugas
+            let host2 = staffData.find(s => (s.shifts[dayIndex] === 'MD12' || s.shifts[dayIndex] === 'MD13') && !assignedStaffIds.has(s.id));
+            let host2BadgeNote = "";
+
+            if (!host2) {
+                host2 = staffData.find(s => (s.shifts[dayIndex] === 'P' || s.shifts[dayIndex] === 'MD11' || s.shifts[dayIndex] === 'S') && !assignedStaffIds.has(s.id));
+                if (host2) host2BadgeNote = " (Backup)";
+            }
+
+            const sessions = [
+                { title: "Sesi 1 (13:00 WIB)", host: host1 ? host1.name : "Tidak Ada Host", shift: host1 ? `Shift ${host1.shifts[dayIndex]}` : "-", time: "13:00 - 14:30" },
+                { title: "Sesi 2 (15:00 WIB)", host: host2 ? (host2.name + host2BadgeNote) : "Tidak Ada Host", shift: host2 ? `Shift ${host2.shifts[dayIndex]}` : "-", time: "15:00 - 16:30" },
+                { title: "Sesi 3 (18:00 WIB)", host: host3 ? host3.name : "Tidak Ada Host", shift: host3 ? `Shift ${host3.shifts[dayIndex]}` : "-", time: "18:00 - 19:30" }
+            ];
+
+            sessions.forEach(sess => {
+                let card = document.createElement('div');
+                card.className = "bg-zinc-50 border border-zinc-200/90 rounded-xl p-4 flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-[10px] font-bold tracking-wider text-zinc-400 uppercase font-mono">${sess.title}</span>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-medium bg-zinc-200/60 text-zinc-700">${sess.time}</span>
+                        </div>
+                        <h4 class="font-bold text-xs text-zinc-900">${sess.host}</h4>
+                    </div>
+                    <div class="mt-3 pt-2 border-t border-zinc-200/50 flex justify-between items-center text-[11px] text-zinc-500">
+                        <span>Penugasan:</span>
+                        <span class="font-semibold text-zinc-800">${sess.shift}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Render Alokasi 6 Sesi Try-On iPad Hari Ini (Tanpa Staff OFF, Prioritas 1 Sesi/Staff, Max 2 Sesi/Staff)
+        function renderDailyTryOnSessions() {
+            const grid = document.getElementById('daily-tryon-sessions-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const now = new Date();
+            let dayIndex = now.getDay() - 1;
+            if (dayIndex === -1) dayIndex = 6;
+
+            // Ambil staf aktif (On-Duty) pada hari berjalan (BUKAN OFF)
+            const activeOnDutyStaff = staffData.filter(s => s.shifts[dayIndex] !== 'OFF');
+
+            const tryOnSessionsTime = [
+                { id: 1, title: "Sesi Try-On 1", time: "10:00 - 11:30 WIB" },
+                { id: 2, title: "Sesi Try-On 2", time: "11:30 - 13:00 WIB" },
+                { id: 3, title: "Sesi Try-On 3", time: "13:30 - 15:00 WIB" },
+                { id: 4, title: "Sesi Try-On 4", time: "15:00 - 16:30 WIB" },
+                { id: 5, title: "Sesi Try-On 5", time: "17:00 - 18:30 WIB" },
+                { id: 6, title: "Sesi Try-On 6", time: "18:30 - 20:00 WIB" }
+            ];
+
+            if (activeOnDutyStaff.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-4 text-xs text-zinc-400">Tidak ada staff bertugas (On-Duty) hari ini</div>`;
+                return;
+            }
+
+            // Map hitung sesi per staf: { staffId: count }
+            const staffSessionCounts = {};
+            activeOnDutyStaff.forEach(s => staffSessionCounts[s.id] = 0);
+
+            // Alokasikan 6 Sesi secara merata ke staf On-Duty (maks 2 sesi/staf)
+            tryOnSessionsTime.forEach((sess) => {
+                // Filter staf yang belum melebihi batas 2 sesi
+                let eligibleStaff = activeOnDutyStaff.filter(s => staffSessionCounts[s.id] < 2);
+
+                // Cari yang count-nya paling sedikit
+                eligibleStaff.sort((a, b) => staffSessionCounts[a.id] - staffSessionCounts[b.id]);
+
+                let assignedStaff = eligibleStaff.length > 0 ? eligibleStaff[0] : null;
+
+                if (assignedStaff) {
+                    staffSessionCounts[assignedStaff.id] += 1;
+                }
+
+                let card = document.createElement('div');
+                card.className = "bg-zinc-50 border border-zinc-200/90 rounded-xl p-3.5 flex flex-col justify-between";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[10px] font-bold tracking-wider text-zinc-500 uppercase font-mono">${sess.title}</span>
+                            <span class="px-2 py-0.5 rounded text-[9px] font-mono bg-zinc-200/60 text-zinc-700">${sess.time}</span>
+                        </div>
+                        <h5 class="font-bold text-xs text-zinc-900">${assignedStaff ? assignedStaff.name : 'Tidak Ada Host'}</h5>
+                    </div>
+                    <div class="mt-2 pt-2 border-t border-zinc-200/50 flex justify-between items-center text-[10px] text-zinc-500">
+                        <span>Penugasan Shift:</span>
+                        <span class="font-semibold text-zinc-800">${assignedStaff ? `Shift ${assignedStaff.shifts[dayIndex]}` : '-'}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Sync Direct Link Google Sheets
+        function syncDirectGoogleSheet() {
+            const inputVal = document.getElementById('direct-sheet-url').value.trim();
+            if (!inputVal) {
+                alert("Silakan masukkan URL atau ID Google Sheet terlebih dahulu.");
+                return;
+            }
+
+            let sheetId = inputVal;
+            const matches = inputVal.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            if (matches && matches[1]) {
+                sheetId = matches[1];
+            }
+
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+
+            fetch(csvUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error("Gagal mengunduh CSV Google Sheet");
+                    return response.text();
+                })
+                .then(csvText => {
+                    parseCSVToSchedule(csvText);
+                    const badge = document.getElementById('data-status-badge');
+                    const text = document.getElementById('sheets-status-text');
+                    if (badge) badge.innerText = "Live Sheet Synced";
+                    if (text) text.innerText = "Terkoneksi Google Sheets";
+                    alert("Berhasil memperbarui jadwal dari Google Sheets!");
+                })
+                .catch(() => {
+                    alert("Gagal membaca Google Sheets. Pastikan dokumen telah di-set 'Publikasikan ke Web' (Publish to web) sebagai format CSV.");
+                });
+        }
+
+        // Parsing CSV String Ke Schedule
+        function parseCSVToSchedule(csvText) {
+            const lines = csvText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            if (lines.length < 2) return;
+
+            let newStaff = [];
+            for (let i = 1; i < lines.length; i++) {
+                const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                if (cols.length >= 8) {
+                    newStaff.push({
+                        id: i,
+                        name: cols[0],
+                        shifts: [cols[2] || 'OFF', cols[3] || 'OFF', cols[4] || 'OFF', cols[5] || 'OFF', cols[6] || 'OFF', cols[7] || 'OFF', cols[8] || 'OFF'],
+                        targetOps: 0,
+                        achOps: 0,
+                        achTryOn: 0
+                    });
+                }
+            }
+
+            if (newStaff.length > 0) {
+                staffData = newStaff;
+                calculateOpsTargetsFromShift();
+                renderAllViews();
+            }
+        }
+
+        // Handle Excel File Upload
+        function handleExcelFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                if (json.length > 1) {
+                    let newStaff = [];
+                    for (let i = 1; i < json.length; i++) {
+                        const row = json[i];
+                        if (row && row[0]) {
+                            newStaff.push({
+                                id: i,
+                                name: row[0],
+                                shifts: [row[2] || 'OFF', row[3] || 'OFF', row[4] || 'OFF', row[5] || 'OFF', row[6] || 'OFF', row[7] || 'OFF', row[8] || 'OFF'],
+                                targetOps: 0,
+                                achOps: 0,
+                                achTryOn: 0
+                            });
+                        }
+                    }
+                    if (newStaff.length > 0) {
+                        staffData = newStaff;
+                        calculateOpsTargetsFromShift();
+                        renderAllViews();
+                        const badge = document.getElementById('data-status-badge');
+                        const text = document.getElementById('sheets-status-text');
+                        if (badge) badge.innerText = "File Excel Synced";
+                        if (text) text.innerText = "Data Upload File";
+                        alert("Berhasil mengimpor data schedule dari file Excel!");
+                        navigateSidebar('schedule');
+                    }
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Download Template CSV/Excel Schedule
+        function downloadExcelTemplate() {
+            const templateCsv = "Nama Staff,Role,Senin,Selasa,Rabu,Kamis,Jumat,Sabtu,Minggu\nAdit Prasetyo,Host OPS,P,P,MD11,P,S,OFF,OFF\nRina Marlina,Assistent Try-On,S,S,P,MD12,P,OFF,OFF\nSiti Kurnia,Host & Cashier,MD13,P,S,S,OFF,P,MD11\nBudi Santoso,Senior Host,OFF,MD11,P,S,P,S,P\nLia Lestari,Stylist Try-On,P,OFF,S,P,MD13,P,S";
+            const blob = new Blob([templateCsv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "Template_Schedule_Mingguan_Toko.csv");
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Handle Pilih Foto oleh Staf
+        function handleStaffPhotoSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            currentSelectedFileName = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentSelectedPhotoBase64 = e.target.result;
+                
+                const previewImg = document.getElementById('preview-img-tag');
+                const filenameText = document.getElementById('preview-filename-text');
+                const placeholder = document.getElementById('photo-upload-placeholder');
+                const previewBox = document.getElementById('photo-upload-preview');
+
+                if (previewImg) previewImg.src = currentSelectedPhotoBase64;
+                if (filenameText) filenameText.innerText = currentSelectedFileName;
+                if (placeholder) placeholder.classList.add('hidden');
+                if (previewBox) previewBox.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Simpan Foto di Dashboard & Auto Send ke Google Drive Folder
+        function saveAndSendPhotoToDrive() {
+            if (!currentSelectedPhotoBase64) {
+                alert("Silakan pilih file foto terlebih dahulu!");
+                return;
+            }
+
+            const staffSelect = document.getElementById('upload-staff-select');
+            const activitySelect = document.getElementById('upload-activity-type');
+            const noteInput = document.getElementById('upload-proof-note');
+
+            const staffId = staffSelect ? parseInt(staffSelect.value) : 1;
+            const staffObj = staffData.find(s => s.id === staffId);
+            const staffName = staffObj ? staffObj.name : "Staff Toko";
+            const activityType = activitySelect ? activitySelect.value : "General";
+            const noteText = noteInput ? noteInput.value.trim() : "";
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            const dateString = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+
+            const fileNameFormatted = `${activityType}_${staffName.replace(/\s+/g, '_')}_${Date.now()}.png`;
+
+            // 1. Simpan Record Foto ke dalam Dashboard
+            const newPhotoRecord = {
+                id: Date.now(),
+                staffName: staffName,
+                activityType: activityType,
+                note: noteText || `${activityType} SS - ${staffName}`,
+                photoUrl: currentSelectedPhotoBase64,
+                timestamp: `${dateString}, ${timeString}`,
+                syncedToDrive: true
+            };
+
+            dashboardPhotoRecords.unshift(newPhotoRecord);
+
+            // 2. Tambah Pencapaian Target Otomatis Staf Sesuai Sesi/Kategori Upload Foto
+            let logMsg = "";
+            if (staffObj) {
+                if (activityType === 'OPS') {
+                    staffObj.achOps += 1;
+                    logMsg = `Target OPS ${staffObj.name} bertambah +1 sesi (Total: ${staffObj.achOps}/${staffObj.targetOps})`;
+                } else if (activityType === 'TryOn') {
+                    staffObj.achTryOn += 1;
+                    logMsg = `Target Try-On ${staffObj.name} bertambah +1 customer (Total: ${staffObj.achTryOn} cust)`;
+                } else if (activityType === 'WeeklySeed') {
+                    if (!staffObj.achWeeklySeed) staffObj.achWeeklySeed = 0;
+                    staffObj.achWeeklySeed += 1;
+                    logMsg = `Bukti Weekly Seed ${staffObj.name} ter-record (+1)`;
+                } else {
+                    if (!staffObj.achChecklist) staffObj.achChecklist = 0;
+                    staffObj.achChecklist += 1;
+                    logMsg = `Bukti Daily Checklist ${staffObj.name} ter-record (+1)`;
+                }
+            }
+
+            // 3. AUTO UPLOAD DIRECTLY TO GOOGLE DRIVE VIA APPS SCRIPT WEB APP
+            let autoUploadStatus = false;
+            if (adminDriveScriptUrl && adminDriveScriptUrl.trim().length > 0) {
+                try {
+                    const payload = {
+                        filename: fileNameFormatted,
+                        mimeType: 'image/png',
+                        base64: currentSelectedPhotoBase64.split(',')[1],
+                        staffName: staffName,
+                        activityType: activityType,
+                        folderUrl: adminDriveUrl
+                    };
+
+                    fetch(adminDriveScriptUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    autoUploadStatus = true;
+                } catch(err) {
+                    console.error("Auto upload ke Apps Script gagal:", err);
+                }
+            }
+
+            // 4. Update Semua View UI Secara Real-Time
+            renderAllViews();
+            renderStoredPhotosGallery();
+
+            // Reset Input Form Photo
+            currentSelectedPhotoBase64 = null;
+            currentSelectedFileName = "";
+            const photoInput = document.getElementById('staff-photo-input');
+            const placeholder = document.getElementById('photo-upload-placeholder');
+            const previewBox = document.getElementById('photo-upload-preview');
+            if (photoInput) photoInput.value = '';
+            if (noteInput) noteInput.value = '';
+            if (placeholder) placeholder.classList.remove('hidden');
+            if (previewBox) previewBox.classList.add('hidden');
+
+            if (autoUploadStatus) {
+                alert(`✅ BERHASIL SINKRON!\n\n1. Target Staff "${staffName}" otomatis ter-update (${logMsg})\n2. Foto bukti OTOMATIS terkirim ke Google Drive Admin.`);
+            } else {
+                alert(`✅ TERSIMPAN DI DASHBOARD!\n\nTarget ${logMsg}.\n\n(Catatan: Untuk auto-upload tanpa buka link manual, pasang URL Google Apps Script di Area Admin. Sekarang mengarahkan ke Folder GDrive Admin...)`);
+                window.open(adminDriveUrl, '_blank');
+            }
+        }
+
+        // Fungsi Copy Script Google Apps Script
+        function copyAppsScriptCode() {
+            const scriptCode = `function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var folderId = "FOLDER_ID_ANDA"; // Masukkan ID Folder Google Drive Admin di sini
+    var folder = DriveApp.getFolderById(folderId);
+    
+    var decoded = Utilities.base64Decode(data.base64);
+    var blob = Utilities.newBlob(decoded, data.mimeType, data.filename);
+    var file = folder.createFile(blob);
+    
+    return ContentService.createTextOutput(JSON.stringify({result: "success", fileId: file.getId()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({result: "error", message: err.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}`;
+
+            navigator.clipboard.writeText(scriptCode).then(() => {
+                alert("Kode Google Apps Script berhasil disalin ke clipboard!\n\nTempelkan (Paste) di editor Google Apps Script Anda.");
+            }).catch(() => {
+                alert("Gagal menyalin otomatis. Silakan buka Area Admin untuk melihat petunjuk.");
+            });
+        }
+
+        // Render Galeri Bukti Foto di Dashboard
+        function renderStoredPhotosGallery() {
+            const gallery = document.getElementById('stored-photos-gallery');
+            const countEl = document.getElementById('stored-photos-count');
+            if (!gallery) return;
+
+            if (countEl) countEl.innerText = `${dashboardPhotoRecords.length} File Foto`;
+
+            if (dashboardPhotoRecords.length === 0) {
+                gallery.innerHTML = `<div class="col-span-full text-center py-6 text-zinc-400 text-xs">Belum ada foto screenshot yang diunggah</div>`;
+                return;
+            }
+
+            gallery.innerHTML = '';
+            dashboardPhotoRecords.forEach(item => {
+                let card = document.createElement('div');
+                card.className = "bg-zinc-50 border border-zinc-200 rounded-xl p-2.5 flex flex-col justify-between";
+                card.innerHTML = `
+                    <div class="relative mb-2">
+                        <img src="${item.photoUrl}" alt="Bukti" class="w-full h-28 object-cover rounded-lg border border-zinc-200">
+                        <span class="absolute top-1 right-1 bg-zinc-900/80 text-white text-[9px] px-1.5 py-0.5 rounded font-mono">${item.activityType}</span>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-xs text-zinc-900 truncate">${item.staffName}</h5>
+                        <p class="text-[10px] text-zinc-500 truncate mt-0.5">${item.note}</p>
+                    </div>
+                    <div class="mt-2 pt-1.5 border-t border-zinc-200/60 flex items-center justify-between text-[9px] text-zinc-400">
+                        <span>${item.timestamp}</span>
+                        <span class="text-emerald-600 font-bold"><i class="fa-solid fa-circle-check"></i> Drive</span>
+                    </div>
+                `;
+                gallery.appendChild(card);
+            });
+        }
+
+        // Modal Helpers
+        function toggleModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.toggle('hidden');
+        }
+
+        function openQuickUpdateModal() {
+            populateModalStaffSelects();
+            toggleModal('quick-update-modal');
+        }
+
+        function saveManualUpdate() {
+            const staffIdSelect = document.getElementById('modal-staff-select');
+            if (!staffIdSelect) return;
+            const staffId = parseInt(staffIdSelect.value);
+            const opsAch = parseInt(document.getElementById('modal-ops-ach').value) || 0;
+            const tryOnAch = parseInt(document.getElementById('modal-tryon-ach').value) || 0;
+
+            let staff = staffData.find(s => s.id === staffId);
+            if (staff) {
+                staff.achOps = opsAch;
+                staff.achTryOn = tryOnAch;
+                renderAllViews();
+                toggleModal('quick-update-modal');
+            }
+        }
+
+        function openFormSubmissionModal() {
+            populateModalStaffSelects();
+            toggleModal('submit-record-modal');
+        }
+
+        function handleFormSubmissionRecord() {
+            const typeSelect = document.getElementById('record-type-select');
+            const staffSelect = document.getElementById('record-staff-select');
+            if (!typeSelect || !staffSelect) return;
+
+            const type = typeSelect.value;
+            const staffId = parseInt(staffSelect.value);
+            const count = parseInt(document.getElementById('record-count-input').value) || 1;
+
+            let staff = staffData.find(s => s.id === staffId);
+            if (staff) {
+                if (type === 'OPS') {
+                    staff.achOps += count;
+                } else {
+                    staff.achTryOn += count;
+                }
+                renderAllViews();
+                toggleModal('submit-record-modal');
+            }
+        }
+
+        function trackFormClick(type) {
+            if (staffData.length > 0) {
+                if (type === 'OPS') {
+                    staffData[0].achOps += 1;
+                } else {
+                    staffData[0].achTryOn += 1;
+                }
+                renderAllViews();
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidStaff(data) {
+      return data.id is number &&
+        data.name is string &&
+        data.name.size() > 0 &&
+        data.name.size() <= 100;
+    }
+
+    function isValidPhoto(data) {
+      return data.id is number &&
+        data.staffName is string &&
+        data.staffName.size() > 0 &&
+        data.staffName.size() <= 100 &&
+        data.activityType is string &&
+        data.activityType in ['OPS', 'TryOn', 'TryOn_iPad', 'TryOn_AirPods', 'TryOn_Watch', 'WeeklySeed', 'Checklist'];
+    }
+
+    function isValidId(id) {
+      return id is string &&
+        id.size() > 0 &&
+        id.size() <= 128 &&
+        id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidStaffProfile(data) {
+      return data.keys().hasAll(['id', 'name']) &&
+        data.keys().hasOnly(['id', 'name', 'role', 'photoUrl', 'nik', 'email', 'joinDate', 'workTenure', 'updatedAt']) &&
+        isValidId(data.id) &&
+        data.name is string &&
+        data.name.size() > 0 &&
+        data.name.size() <= 100 &&
+        (!('role' in data) || (data.role is string && data.role.size() <= 60)) &&
+        (!('photoUrl' in data) || (data.photoUrl is string && data.photoUrl.size() <= 400000)) &&
+        (!('nik' in data) || (data.nik is string && data.nik.size() <= 50)) &&
+        (!('email' in data) || (data.email is string && data.email.size() <= 150)) &&
+        (!('joinDate' in data) || (data.joinDate is string && data.joinDate.size() <= 20)) &&
+        (!('workTenure' in data) || (data.workTenure is string && data.workTenure.size() <= 100)) &&
+        (!('updatedAt' in data) || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    // Staff Collection (Roster & Target Tallies)
+    match /staff/{staffDocId} {
+      allow read: if true;
+      allow create, update: if isValidStaff(request.resource.data);
+      allow delete: if true;
+    }
+
+    // Staff Profiles Collection (Staff On Duty master profiles: photo, NIK, email, tenure)
+    match /staff_profiles/{profileDocId} {
+      allow list: if true;
+      allow get: if isValidId(profileDocId);
+      allow create, update: if isValidId(profileDocId) && isValidStaffProfile(request.resource.data);
+      allow delete: if isValidId(profileDocId);
+    }
+
+    // Photos Collection (Uploaded Screenshot Proofs)
+    match /photos/{photoDocId} {
+      allow read: if true;
+      allow create: if isValidPhoto(request.resource.data);
+      allow update, delete: if true;
+    }
+
+    // Store Config (Drive & Admin Preferences)
+    match /config/{configDocId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Default catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

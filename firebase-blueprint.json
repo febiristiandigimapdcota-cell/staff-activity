@@ -1,0 +1,211 @@
+{
+  "entities": {
+    "StaffMember": {
+      "title": "StaffMember",
+      "description": "Store specialist profile, weekly shift roster, and target achievements",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "description": "Unique integer ID of the staff member"
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of staff member",
+          "maxLength": 100
+        },
+        "role": {
+          "type": "string",
+          "description": "Staff store role",
+          "maxLength": 100
+        },
+        "shifts": {
+          "type": "string",
+          "description": "JSON serialized 7-day shift codes or comma-separated shifts",
+          "maxLength": 100
+        },
+        "targetOps": {
+          "type": "number",
+          "description": "Calculated weekly OPS target sessions"
+        },
+        "achOps": {
+          "type": "number",
+          "description": "Completed OPS sessions count"
+        },
+        "achTryOn": {
+          "type": "number",
+          "description": "Completed customer try-on count"
+        },
+        "achWeeklySeed": {
+          "type": "number",
+          "description": "Completed weekly seed count"
+        },
+        "achChecklist": {
+          "type": "number",
+          "description": "Completed daily checklist count"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update"
+        }
+      },
+      "required": ["id", "name"]
+    },
+    "PhotoRecord": {
+      "title": "PhotoRecord",
+      "description": "Photo proof screenshot uploaded by store staff",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "description": "Timestamp ID of the photo record"
+        },
+        "staffName": {
+          "type": "string",
+          "description": "Name of the staff who uploaded the proof",
+          "maxLength": 100
+        },
+        "activityType": {
+          "type": "string",
+          "description": "Category of activity (OPS, TryOn, TryOn_iPad, TryOn_AirPods, TryOn_Watch, WeeklySeed, Checklist)",
+          "enum": ["OPS", "TryOn", "TryOn_iPad", "TryOn_AirPods", "TryOn_Watch", "WeeklySeed", "Checklist"]
+        },
+        "customerType": {
+          "type": "string",
+          "description": "Customer type for Try-on: iPhone Purchaser or Browser",
+          "enum": ["iPhone Purchaser", "Browser"]
+        },
+        "programCampaign": {
+          "type": "string",
+          "description": "Campaign name: Aksara, Samudra, Nirwana",
+          "maxLength": 100
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional notes or session description",
+          "maxLength": 500
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "Base64 thumbnail or image data URL"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Human-readable submission time"
+        },
+        "syncedToDrive": {
+          "type": "boolean",
+          "description": "Whether photo was uploaded to Google Drive"
+        },
+        "driveFileId": {
+          "type": "string",
+          "description": "Google Drive file ID",
+          "maxLength": 200
+        },
+        "driveWebViewLink": {
+          "type": "string",
+          "description": "Google Drive web preview link",
+          "maxLength": 500
+        }
+      },
+      "required": ["id", "staffName", "activityType"]
+    },
+    "StoreConfig": {
+      "title": "StoreConfig",
+      "description": "Global store operational settings",
+      "type": "object",
+      "properties": {
+        "adminPin": {
+          "type": "string",
+          "description": "Admin access PIN",
+          "maxLength": 20
+        },
+        "adminDriveUrl": {
+          "type": "string",
+          "description": "Google Drive folder URL",
+          "maxLength": 500
+        },
+        "adminDriveScriptUrl": {
+          "type": "string",
+          "description": "Optional Webhook script URL",
+          "maxLength": 500
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp of config update"
+        }
+      }
+    },
+    "StaffProfile": {
+      "title": "StaffProfile",
+      "description": "Employee master profile for Staff On Duty (photo, NIK, email, work tenure)",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Normalized profile document ID",
+          "maxLength": 128
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of staff member",
+          "maxLength": 100
+        },
+        "role": {
+          "type": "string",
+          "description": "Store role (e.g. Staff, Leader, Cashier)",
+          "maxLength": 60
+        },
+        "photoUrl": {
+          "type": "string",
+          "description": "Compressed base64 staff avatar data URL",
+          "maxLength": 400000
+        },
+        "nik": {
+          "type": "string",
+          "description": "Employee NIK / ID number",
+          "maxLength": 50
+        },
+        "email": {
+          "type": "string",
+          "description": "Employee email address",
+          "maxLength": 150
+        },
+        "joinDate": {
+          "type": "string",
+          "description": "Start work date YYYY-MM-DD",
+          "maxLength": 20
+        },
+        "workTenure": {
+          "type": "string",
+          "description": "Work tenure label",
+          "maxLength": 100
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update",
+          "maxLength": 50
+        }
+      },
+      "required": ["id", "name"]
+    }
+  },
+  "firestore": {
+    "/staff/{staffDocId}": {
+      "schema": "StaffMember",
+      "description": "Weekly store staff shift roster and live achievement tallies"
+    },
+    "/staff_profiles/{profileDocId}": {
+      "schema": "StaffProfile",
+      "description": "Employee master profiles (photo, NIK, email, work tenure) managed via Admin Staff On Duty"
+    },
+    "/photos/{photoDocId}": {
+      "schema": "PhotoRecord",
+      "description": "Uploaded activity proof screenshot gallery"
+    },
+    "/config/{configDocId}": {
+      "schema": "StoreConfig",
+      "description": "Store operational configuration"
+    }
+  }
+}
